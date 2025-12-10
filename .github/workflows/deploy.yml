@@ -19,7 +19,7 @@ jobs:
         script: |
           # 1. STOP the bot service (Optional, but good practice)
           # Replace 'discordbot' with your actual service name from earlier
-          systemctl stop discord-bot
+          # systemctl stop discord-bot
 
           # 2. Go to your bot folder
           # CHANGE THIS to the actual folder name on your server!
@@ -38,4 +38,4 @@ jobs:
           echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
 
           # 6. Restart the bot
-          systemctl start discord-bot
+          make run
