@@ -1,0 +1,10 @@
+services:
+  discord-bot:
+    image: discord-bot:latest  # or your registry like ghcr.io/username/disbot:latest
+    container_name: disbot
+    restart: unless-stopped
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../logs:/app/logs  # Optional: for persistent logs
