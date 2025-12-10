@@ -1,0 +1,41 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches: [ main ]  # Runs whenever you push to the 'main' branch
+
+jobs:
+  deploy:
+    name: Deploy Bot
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Execute Remote SSH Commands
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        script: |
+          # 1. STOP the bot service (Optional, but good practice)
+          # Replace 'discordbot' with your actual service name from earlier
+          systemctl stop discord-bot
+
+          # 2. Go to your bot folder
+          # CHANGE THIS to the actual folder name on your server!
+          cd /root/hanabo
+
+          # 3. Pull the latest code from GitHub
+          git pull origin main
+
+          # 4. Update libraries (if you added new ones)
+          # using 'uv' if you installed it, otherwise use 'pip3'
+          # pip3 install -r requirements.txt
+          docker build -t discord-bot .
+
+          # 5. RE-CREATE the .env file
+          # GitHub injects the token secret into the file securely
+          echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
+
+          # 6. Restart the bot
+          systemctl start discord-bot
