@@ -1,27 +1,33 @@
 import discord
-import os
 from discord.ext import commands
-from dotenv import load_dotenv
+from loguru import logger
+from config import Config
+from database import setup_database
 
-# Load token from .env file
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
+def validate_config():
+    try:
+        Config.validate()
+    except ValueError as e:
+        logger.error(e)
+        exit(1)
 
-# Setup
-intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
+if __name__ == '__main__':
+    logger.add(f"logs/app.log", rotation="1 day", retention="7 days") 
+    
+    validate_config()
 
-@bot.event
-async def on_ready():
-    print(f'✅ Alive! Logged in as {bot.user}')
+    # Setup
+    intents = discord.Intents.default()
+    intents.message_content = True
+    bot = commands.Bot(command_prefix='!', intents=intents)
 
-@bot.command()
-async def ping(ctx):
-    await ctx.send('Pong!')
+    @bot.event
+    async def setup_hook():
+        await setup_database(bot)
+        await bot.load_extension('commands.chat')
+        await bot.load_extension('slashes.chat')
+        
+        # bot.tree.clear_commands(guild=None)  # Clears global commands
+        await bot.tree.sync()
 
-# Run
-if TOKEN:
-    bot.run(TOKEN)
-else:
-    print("❌ Token not found! Check your .env file.")
+    bot.run(Config.DISCORD_TOKEN)
